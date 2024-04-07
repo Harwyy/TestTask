@@ -1,7 +1,8 @@
 package org.example;
 
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,8 +48,8 @@ public class Tasks {
     }
 
     // minimum flight time
-    public static HashMap<String, LocalTime> firstTask(List<Ticket> tickets){
-        HashMap<String, LocalTime> map = new HashMap<>();
+    public static HashMap<String, Duration> firstTask(List<Ticket> tickets){
+        HashMap<String, Duration> map = new HashMap<>();
         for (Ticket ticket : tickets) {
             if (ticket.getOrigin_name().equals("Владивосток") && ticket.getDestination_name().equals("Тель-Авив")) {
                 String dt = ticket.getDeparture_time();
@@ -59,20 +60,27 @@ public class Tasks {
                 if (ticket.getArrival_time().length() == 4){
                     at = "0" + at;
                 }
-                LocalTime departureTime = LocalTime.parse(dt);
-                LocalTime arrivalTime = LocalTime.parse(at);
-                int diffHours = (int) departureTime.until(arrivalTime, ChronoUnit.HOURS);
-                int diffMinutes = (int) (departureTime.until(arrivalTime, ChronoUnit.MINUTES) % 60);
-                LocalTime diffTime = LocalTime.of(diffHours, diffMinutes);
+                String departureDate = ticket.getDeparture_date() + "T" + dt + ":00";
+                String arrivalDate = ticket.getArrival_date() + "T" + at + ":00";
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy'T'HH:mm:ss");
+                LocalDateTime departure = LocalDateTime.parse(departureDate, formatter);
+                LocalDateTime arrival = LocalDateTime.parse(arrivalDate, formatter);
+                Duration duration = Duration.between(departure, arrival);
                 if (map.containsKey(ticket.getCarrier())){
-                    if (diffTime.compareTo(map.get(ticket.getCarrier())) == -1){
-                        map.replace(ticket.getCarrier(), diffTime);
+                    if (duration.compareTo(map.get(ticket.getCarrier())) == -1){
+                        map.replace(ticket.getCarrier(), duration);
                     }
                 } else {
-                    map.put(ticket.getCarrier(), diffTime);
+                    map.put(ticket.getCarrier(), duration);
                 }
             }
         }
         return map;
+    }
+
+    public static void main(String[] args) {
+        String date = "12.05.18";
+        date = date.split("\\.")[0];
+        System.out.println(date);
     }
 }
